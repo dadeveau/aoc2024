@@ -8,11 +8,50 @@
 
 /^Program/ {
     split($0,programLine," ")
+        programString = programLine[2]
     split(programLine[2],program,",")
 }
 
 END {
     instructionPointer = 0
+    print "17a: " runProgram()
+
+    #init recursion at 0
+    possibleValues[0] = 1
+    print "17b: " recurseProgram(possibleValues, 1, 16)
+}
+
+function getMinArrayIndex(arr) { 
+    min = 8^16
+    for (i in arr) { 
+        if (i < min) {
+            min = i
+        }
+    }
+    return min
+}
+
+function recurseProgram(possibleValues, step, maxStep,      newPossibleValues) {
+    for (v in possibleValues) {
+        for(test = 8*v; test <= 8*v+7; test++) {
+            instructionPointer = 0
+            register["A"] = test
+            register["B"] = 0
+            register["C"] = 0
+            ans = runProgram()
+            if (ans == substr(programString,length(programString)-length(ans)+1)) {
+                newPossibleValues[test] = 1
+            }
+        }
+    }
+    if (step == maxStep) { 
+        return getMinArrayIndex(newPossibleValues)
+    } else {
+        return recurseProgram(newPossibleValues, step+1, maxStep)
+    }
+}
+
+function runProgram(     answer) { 
     while (instructionPointer < length(program)-1) {
         instruction = program[instructionPointer+1]
         operand = program[instructionPointer+2]
@@ -26,7 +65,7 @@ END {
             instructionPointer += 2
         }
     }
-    print substr(answer,2)
+    return substr(answer,2)
 }
 
 function getComboOperand(operand) {
